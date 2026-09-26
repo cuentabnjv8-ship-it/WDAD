@@ -1115,21 +1115,28 @@ end
 
 -- ---------------------------------------------------------------------
 -- Ejecutar dentro del historial (Ctrl+Z deshace todo junto)
+-- Si la Command Bar ya graba su propio paso, TryBeginRecording devuelve
+-- nil: igual queda todo en un solo Ctrl+Z.
 -- ---------------------------------------------------------------------
-local id = CHS:TryBeginRecording("MapaJurasico", "Mapa Jurasico")
-if not id then
-	warn("[Mapa] No pude grabar el historial. Asegurate de estar en modo Edit (no en Play).")
+if game:GetService("RunService"):IsRunning() then
+	warn("[Mapa] Estas en Play: frena el juego (cuadrado rojo) y correlo de nuevo.")
 else
+	local id = CHS:TryBeginRecording("MapaJurasico", "Mapa Jurasico")
 	local ok, err = pcall(construir)
 	if ok then
-		CHS:FinishRecording(id, Enum.FinishRecordingOperation.Commit)
+		if id then
+			CHS:FinishRecording(id, Enum.FinishRecordingOperation.Commit)
+		end
 		print("[Mapa] LISTO. Piezas nuevas: " .. nPiezas .. " | Luces: " .. nLuces)
 		for _, linea in ipairs(resumen) do
 			print("[Mapa] " .. linea)
 		end
 		print("[Mapa] Si no te gusta: Ctrl+Z")
-	else
+	elseif id then
 		CHS:FinishRecording(id, Enum.FinishRecordingOperation.Cancel)
 		warn("[Mapa] ERROR, no se cambio nada: " .. tostring(err))
+	else
+		warn("[Mapa] ERROR: " .. tostring(err))
+		warn("[Mapa] Apreta Ctrl+Z para deshacer lo que alcanzo a hacer.")
 	end
 end
